@@ -7,7 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.util.AttributeSet;
@@ -20,15 +19,14 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
-import static com.example.weijingliu.rippledrawable.RectUtils.*;
+import static com.example.weijingliu.rippledrawable.RectUtils.adjustCenter;
+import static com.example.weijingliu.rippledrawable.RectUtils.adjustRadius;
 
 public class RippleDrawable extends Drawable implements View.OnTouchListener {
 
-  private View mHost = null;  // host is default to null.
-
-  private Paint mPaint = new Paint();
-
   private final AnimationImpl mAnimationImpl = new AnimationImpl();
+  private View mHost = null;  // host is default to null.
+  private Paint mPaint = new Paint();
 
   public RippleDrawable() {
     setAlpha(100);
@@ -62,6 +60,8 @@ public class RippleDrawable extends Drawable implements View.OnTouchListener {
 
   @Override
   public void draw(Canvas canvas) {
+    // Drawable visibility is not being checked by default. We check and only draw
+    // when necessary.
     if (isVisible()) {
       canvas.drawCircle(
           getBounds().centerX(),
@@ -110,16 +110,18 @@ public class RippleDrawable extends Drawable implements View.OnTouchListener {
   private class AnimationImpl {
     private ObjectAnimator mAnimator;
 
-    public void setRadius(int radius) {
-      setBounds(adjustRadius(getBounds(), radius));
-      invalidateSelf();
-    }
-
     public int getRadius() {
       return RectUtils.getRadius(getBounds());
     }
 
+    public void setRadius(int radius) {
+      // TODO: eliminate a tempoaray Rect allocation here.
+      setBounds(adjustRadius(getBounds(), radius));
+      invalidateSelf();
+    }
+
     public void setCenter(int x, int y) {
+      // TODO: eliminate a tempoaray Rect allocation here.
       setBounds(adjustCenter(getBounds(), x, y));
       invalidateSelf();
     }
